@@ -6,26 +6,26 @@ import java.util.function.Function;
 
 public class Result<L,R>{
 
-    private final Optional<L> left;
-    private final Optional<R> right;
+    private final Optional<L> failure;
+    private final Optional<R> success;
 
-    protected Result(Optional<L> l, Optional<R> r) {
-        this.left = l;
-        this.right = r;
+    protected Result(Optional<L> f, Optional<R> s) {
+        this.failure = f;
+        this.success = s;
     }
 
-    public <T> Result<L,T> mapRight(Function<? super R, T> mapper){
+    public <T> Result<L,T> mapSuccess(Function<? super R, T> mapper){
 
-        return new Result<>(left, right.map(mapper));
+        return new Result<>(failure, success.map(mapper));
     }
 
-    public <T> Result<T,R> mapLeft(Function<? super L, T> mapper){
+    public <T> Result<T,R> mapFailure(Function<? super L, T> mapper){
 
-        return new Result<>(left.map(mapper), right);
+        return new Result<>(failure.map(mapper), success);
     }
 
     public void apply(Consumer<? super L> sConsumer, Consumer<? super R> fConsumer){
-        left.ifPresent(sConsumer);
-        right.ifPresent(fConsumer);
+        failure.ifPresent(sConsumer);
+        success.ifPresent(fConsumer);
     }
 }

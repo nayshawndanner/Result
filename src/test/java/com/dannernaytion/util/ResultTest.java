@@ -18,9 +18,9 @@ public class ResultTest {
         Result<RuntimeException, Integer> actualResult = new Result<RuntimeException, String>(
                 Optional.empty(),
                 Optional.of(value))
-                .mapRight(Integer::new);
+                .mapSuccess(Integer::new);
 
-        actualResult.mapLeft(num -> {
+        actualResult.mapFailure(num -> {
             assertThat(num, equalTo(expected));
             return num;
         });
@@ -34,9 +34,9 @@ public class ResultTest {
         Result<Integer, RuntimeException> actualResult = new Result<String, RuntimeException>(
                 Optional.of(value),
                 Optional.empty()).
-                mapLeft(Integer::new);
+                mapFailure(Integer::new);
 
-        actualResult.mapLeft(num -> {
+        actualResult.mapFailure(num -> {
             assertThat(num, equalTo(expected));
             return num;
         });
@@ -59,7 +59,7 @@ public class ResultTest {
     @Test
     public void testMapLeftWhenEmpty() {
         new Result<>(Optional.empty(), Optional.empty())
-                .mapLeft(v -> {
+                .mapFailure(v -> {
                     fail("Should Not be Called");
                     return v;
                 });
@@ -68,7 +68,7 @@ public class ResultTest {
     @Test
     public void testMapRightWhenEmpty() {
         new Result<>(Optional.empty(), Optional.empty())
-                .mapRight(v -> {
+                .mapSuccess(v -> {
                     fail("Should Not be Called");
                     return v;
                 });

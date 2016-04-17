@@ -3,11 +3,6 @@
 *.iml
 
 ## File-based project format:
-*.ipr
-**/*.ipr
-*/*.iws
-*.iws
-ios/Pods/
 **/.gradle
 **/gradle
 **/build
