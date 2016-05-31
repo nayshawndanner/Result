@@ -1,8 +1,7 @@
-package com.dannernaytion.util;
+package com.dannernaytion.util.result;
 
+import com.dannernaytion.util.either.Either;
 import org.junit.Test;
-
-import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -15,10 +14,8 @@ public class ResultTest {
         final String value = "25";
         final Integer expected = 25;
 
-        Result<RuntimeException, Integer> actualResult = new Result<RuntimeException, String>(
-                Optional.empty(),
-                Optional.of(value))
-                .mapFailure(Integer::new);
+        final Result<Integer, String> initialResult = new Result<>(new Either.Right<>(value));
+        Result<Integer, Integer> actualResult = initialResult.mapFailure(Integer::new);
 
         actualResult.mapFailure(num -> {
             assertThat(num, equalTo(expected));
@@ -31,8 +28,9 @@ public class ResultTest {
         final String value = "25";
         final Integer expected = 25;
 
-        Result<Integer, RuntimeException> actualResult = new Result<String, RuntimeException>(
-                Optional.of(value), Optional.empty()).mapSuccess(Integer::new);
+        final Result<String, Integer> initialResult = new Result<>(new Either.Left<>(value));
+
+        Result<Integer, Integer> actualResult = initialResult.mapSuccess(Integer::new);
 
         actualResult.mapSuccess(num -> {
             assertThat(num, equalTo(expected));
@@ -42,21 +40,18 @@ public class ResultTest {
 
     @Test
     public void testApply() throws Exception {
-
         String expectedStr = new String("Hello");
-        IllegalArgumentException expectedEx = new IllegalArgumentException();
-
-        new Result<>(Optional.of("Hello"), Optional.of(expectedEx))
+        new Result<>(new Either.Left<>("Hello"))
                 .apply(
                         s -> assertThat(s, equalTo(expectedStr)),
-                        f -> assertThat(f, equalTo(expectedEx))
+                        f -> {
+                        }
                 );
-
     }
 
     @Test
     public void testMapFailureWhenEmpty() {
-        new Result<>(Optional.empty(), Optional.empty())
+        new Result<>(new Either.Left<>(""))
                 .mapFailure(v -> {
                     fail("Should Not be Called");
                     return v;
@@ -65,27 +60,18 @@ public class ResultTest {
 
     @Test
     public void testMapSuccessWhenEmpty() {
-        new Result<>(Optional.empty(), Optional.empty())
+        new Result<>(new Either.Right<>(""))
                 .mapSuccess(v -> {
                     fail("Should Not be Called");
                     return v;
                 });
     }
-
-    @Test
-    public void testApplyWhenEmpty() {
-        new Result<>(Optional.empty(), Optional.empty())
-                .apply(
-                        s -> fail("Unexpected Success Consumer call"),
-                        f -> fail("Unexpected Failure Consumer call")
-                );
-    }
-
+    
     @Test
     public void testFlatMapSuccess() {
-        Result<Class<Void>, String> expectedFlatMappedResult = new Failure<>("success-value");
-        Result<Integer, Class<Void>> initialResult = new Success<>(0);
-        Result<Class<Void>, String> flatMappedResult =
+        Result<Integer, String> expectedFlatMappedResult = new Failure<>("success-value");
+        Result<Integer, Integer> initialResult = new Success<>(0);
+        Result<Integer, String> flatMappedResult =
                 initialResult.flatMapSuccess(intValue -> new Failure<>("success-value"));
 
         assertThat(flatMappedResult, equalTo(expectedFlatMappedResult));
@@ -93,18 +79,18 @@ public class ResultTest {
 
     @Test
     public void testFlatMapFailure() {
-        Result<Class<Void>, Integer> initialResult = new Failure<>(0);
-        Result<String, Class<Void>> expectedFlatMappedResult = new Success<>("success-value");
-        Result<String, Class<Void>> flatMappedResult =
+        Result<Integer, Integer> initialResult = new Failure<>(0);
+        Result<String, Integer> expectedFlatMappedResult = new Success<>("success-value");
+        Result<String, Integer> flatMappedResult =
                 initialResult.flatMapFailure(intValue -> new Success<>("success-value"));
 
         assertThat(flatMappedResult, equalTo(expectedFlatMappedResult));
     }
 
     @Test
-    public void testFlapMapSuccessEmpty(){
+    public void testFlapMapSuccessEmpty() {
         final String initialFailureValue = "failure-value";
-        Result<Class<Void>, String> initialResult = new Result<>(Optional.empty(), Optional.of(initialFailureValue));
+        Result<Integer, String> initialResult = new Result<>(new Either.Right<>(initialFailureValue));
 
         Result flatMappedResult = initialResult
                 .flatMapSuccess(voidClass -> {
@@ -120,10 +106,11 @@ public class ResultTest {
         assertThat(flatMappedResult, equalTo(initialResult));
 
     }
+
     @Test
-    public void testFlapMapFailureEmpty(){
+    public void testFlapMapFailureEmpty() {
         final String expectedValue = "success-value";
-        Result<String, Class<Void>> initialResult = new Result<>(Optional.of(expectedValue), Optional.empty());
+        Result<String, Integer> initialResult = new Result<>(new Either.Left<>(expectedValue));
 
         Result flatMappedResult = initialResult
                 .flatMapFailure(voidClass -> {
@@ -132,7 +119,7 @@ public class ResultTest {
                 });
 
         flatMappedResult.apply(
-                successValue -> assertThat(successValue,equalTo(expectedValue)),
+                successValue -> assertThat(successValue, equalTo(expectedValue)),
                 failureValue -> fail("Not expecting failure Compose call"));
 
         assertThat(flatMappedResult, equalTo(initialResult));
@@ -142,7 +129,7 @@ public class ResultTest {
     @Test
     public void test_SuccessResultConstruction() {
         String successfulResultValue = new String("success-value");
-        Result<String, RuntimeException> actualResult = new Success<>(successfulResultValue);
+        Result<String, Integer> actualResult = new Success<>(successfulResultValue);
 
         actualResult.apply(
                 successValue -> assertThat(successValue, equalTo(successfulResultValue)),
@@ -152,8 +139,8 @@ public class ResultTest {
 
     @Test
     public void test_FailureResultConstruction() {
-        IllegalArgumentException failureResultValue = new IllegalArgumentException();
-        Result<String, RuntimeException> actualResult = new Failure<>(failureResultValue);
+        Integer failureResultValue = new Integer(5);
+        Result<String, Integer> actualResult = new Failure<>(failureResultValue);
 
         actualResult.apply(
                 s -> fail("Unexpected Success Consumer call"),
